@@ -20,7 +20,7 @@ SCREEN_UPDATE_EVENT = pygame.USEREVENT
 pygame.time.set_timer(SCREEN_UPDATE_EVENT, 150)
 
 class MapCoord2D:
-    def __init__(self, xx, yy):
+    def __init__(self, xx, yy) -> None:
         self.xx: int = xx
         self.yy: int = yy
 
@@ -45,11 +45,12 @@ class MapCoord2D:
     def y(self, offset = 0) -> int:
         return (self.yy + offset) * CELL_SIZE
 
+SNEK_STARTING_POS = [MapCoord2D(6,10),MapCoord2D(7,10), MapCoord2D(8,10)]
 
 class Snek:
     def __init__(self):
-        self.snekBody = [MapCoord2D(6,10),MapCoord2D(7,10), MapCoord2D(8,10)]
-        self.direction = MapCoord2D(-1,0)
+        self.snekBody = SNEK_STARTING_POS
+        self.direction = MapCoord2D(0,0)
 
     def draw(self):
         for index, block in enumerate(self.snekBody):
@@ -60,19 +61,20 @@ class Snek:
             pygame.draw.rect(window, color, r)
 
     def move(self):
+        if self.direction == MapCoord2D(0,0): return
         c = self.snekBody[:-1]
-        c.insert(0, c[0] + game.snek.direction)  # type: ignore
+        c.insert(0, c[0] + game.snek.direction)  
         self.snekBody = c
 
     def head(self) -> MapCoord2D:
         return self.snekBody[0]
 
 class Food:
-    def __init__(self):
+    def __init__(self) -> None:
         self.x = 0
         self.y = 0
         #self.pos = MapCoord2D(self.x, self.y)
-        self.pos : MapCoord2D = None # type: ignore
+        self.pos : MapCoord2D
     
     def draw(self):
         r = pygame.rect.Rect(self.pos.x(), self.pos.y(), CELL_SIZE, CELL_SIZE)
@@ -100,6 +102,9 @@ class Game:
             self.food.place()
             self.snek.snekBody.append(MapCoord2D(self.snek.snekBody[-1].x(1) ,self.snek.snekBody[-1].y(1)))
             self.points += 1
+        for block in self.snek.snekBody[1:]:
+            if block == self.snek.head():
+                self.game_over()
         window.fill((100,101,100))
         game.draw()
         pygame.display.update()
@@ -112,11 +117,8 @@ class Game:
         window.blit(font_surface, (10,10))
 
     def game_over(self):
-        font_surface = font.render("Life is over", False, (0, 0, 0))
-        window.blit(font_surface, (0,0))
-        pygame.display.flip()
-        print("Life is over")
-        self.isPaused = True
+        self.snek.snekBody = SNEK_STARTING_POS
+        self.points = 0
 
 game = Game()
 
